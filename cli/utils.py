@@ -242,6 +242,8 @@ def select_llm_provider() -> tuple[str, str | None]:
     """Select the LLM provider and its API endpoint."""
     # (display_name, provider_key, base_url)
     PROVIDERS = [
+        ("NVIDIA NIM", "nvidia", "https://integrate.api.nvidia.com/v1"),
+        ("GitHub Copilot", "copilot", "https://models.inference.ai.azure.com"),
         ("OpenAI", "openai", "https://api.openai.com/v1"),
         ("Google", "google", None),
         ("Anthropic", "anthropic", "https://api.anthropic.com/"),

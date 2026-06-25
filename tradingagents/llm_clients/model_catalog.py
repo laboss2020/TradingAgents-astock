@@ -114,6 +114,40 @@ MODEL_OPTIONS: ProviderModeOptions = {
             ("Custom model ID", "custom"),
         ],
     },
+    "nvidia": {
+        "quick": [
+            ("deepseek-v4-flash", "deepseek-ai/deepseek-v4-flash"),
+            ("deepseek-v4-pro", "deepseek-ai/deepseek-v4-pro"),
+            ("glm-5.1", "z-ai/glm-5.1"),
+            ("kimi-k2.6", "moonshotai/kimi-k2.6"),
+            ("minimax-m2.7", "minimaxai/minimax-m2.7"),
+            ("minimax-m3", "minimaxai/minimax-m3"),
+            ("step-3.7-flash", "stepfun-ai/step-3.7-flash"),
+            ("Custom model ID", "custom"),
+        ],
+        "deep": [
+            ("deepseek-v4-flash", "deepseek-ai/deepseek-v4-flash"),
+            ("deepseek-v4-pro", "deepseek-ai/deepseek-v4-pro"),
+            ("glm-5.1", "z-ai/glm-5.1"),
+            ("kimi-k2.6", "moonshotai/kimi-k2.6"),
+            ("minimax-m2.7", "minimaxai/minimax-m2.7"),
+            ("minimax-m3", "minimaxai/minimax-m3"),
+            ("step-3.7-flash", "stepfun-ai/step-3.7-flash"),
+            ("Custom model ID", "custom"),
+        ],
+    },
+        "copilot": {
+        "quick": [
+            ("GPT-5 mini", "gpt-5-mini"),
+            ("Claude Haiku 4.5", "claude-haiku-4-5"),
+            ("Custom model ID", "custom"),
+        ],
+        "deep": [
+            ("GPT-5 mini", "gpt-5-mini"),
+            ("Claude Haiku 4.5", "claude-haiku-4-5"),
+            ("Custom model ID", "custom"),
+        ],
+    },
     # OpenRouter: fetched dynamically. Azure: any deployed model name.
     "ollama": {
         "quick": [
