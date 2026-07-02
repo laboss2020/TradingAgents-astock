@@ -12,6 +12,8 @@
 <p align="center">
   <a href="https://github.com/simonlin1212/tradingagents-astock/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/simonlin1212/tradingagents-astock?style=social"/></a>
   <a href="https://github.com/simonlin1212/tradingagents-astock/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/simonlin1212/tradingagents-astock?style=social"/></a>
+  <a href="https://github.com/simonlin1212/tradingagents-astock/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/simonlin1212/tradingagents-astock/actions/workflows/ci.yml/badge.svg"/></a>
+  <a href="https://github.com/simonlin1212/tradingagents-astock/actions/workflows/deploy-webui.yml"><img alt="Deploy Web UI" src="https://github.com/simonlin1212/tradingagents-astock/actions/workflows/deploy-webui.yml/badge.svg"/></a>
   <a href="https://arxiv.org/abs/2412.20138"><img alt="论文" src="https://img.shields.io/badge/论文-arXiv_2412.20138-B31B1B?logo=arxiv"/></a>
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache_2.0-blue"/></a>
   <a href="./CHANGES_FROM_UPSTREAM.md"><img alt="改动记录" src="https://img.shields.io/badge/改动记录-CHANGES-orange"/></a>
@@ -189,6 +191,17 @@ ANTHROPIC_API_KEY=sk-ant-xxx
 
 # ── 方案 G：Kimi（Anthropic 兼容 API）────────────────
 ANTHROPIC_AUTH_TOKEN=your-kimi-token
+
+# ── 方案 H：NVIDIA NIM（推荐，免费额度）──────────────
+NVIDIA_API_KEY=nvapi-xxx
+# 申请地址：https://build.nvidia.com/
+
+# ── 方案 I：GitHub Copilot Models（全计划可用）───────
+GITHUB_TOKEN=ghp_xxx
+# 申请地址：https://github.com/settings/personal-access-tokens
+
+# 支持以下 GitHub Copilot 计划：
+# GitHub Copilot Free / Student / Pro / Pro+ / Max / Business / Enterprise
 ```
 
 ### 3. 运行分析
@@ -198,11 +211,11 @@ ANTHROPIC_AUTH_TOKEN=your-kimi-token
 ```python
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 
-# ── MiniMax 示例（推荐）─────────────────────────────
+# ── NVIDIA NIM 示例（当前默认）──────────────────────
 config = {
-    "llm_provider": "minimax",
-    "deep_think_llm": "MiniMax-M2.7",
-    "quick_think_llm": "MiniMax-M2.7-highspeed",
+  "llm_provider": "nvidia",
+  "deep_think_llm": "deepseek-ai/deepseek-v4-pro",
+  "quick_think_llm": "minimaxai/minimax-m2.7",
     "output_language": "Chinese",
 }
 
@@ -253,9 +266,21 @@ streamlit run web/app.py
 
 打开浏览器访问 `http://localhost:8501`。
 
+### GitHub Actions 自动部署（公网可直接访问）
+
+仓库已内置工作流 [`.github/workflows/deploy-webui.yml`](.github/workflows/deploy-webui.yml)，会把 Web UI 自动部署到 **Hugging Face Spaces**。
+
+1. 在 GitHub 仓库 `Settings -> Secrets and variables -> Actions` 配置：
+  - Secret: `HF_TOKEN`（Hugging Face Access Token，需有写入 Space 权限）
+  - Variable: `HF_SPACE_ID`（格式：`你的用户名/你的space名`，如 `alice/tradingagents-astock-webui`）
+2. 推送到 `main`/`master`（或手动运行 `Deploy Web UI` 工作流）
+3. 部署完成后直接访问：`https://huggingface.co/spaces/<HF_SPACE_ID>`
+
+> 如需在线分析能力，请在 Hugging Face Space 的 `Settings -> Variables and secrets` 中配置你使用的模型 API Key（如 `MINIMAX_API_KEY`、`DEEPSEEK_API_KEY` 等）。
+
 ### 功能
 
-- **模型自选**：侧边栏支持 9 个 LLM 供应商切换（MiniMax/DeepSeek/Qwen/GLM/OpenAI/Anthropic/Google/xAI/Ollama）
+- **模型自选**：侧边栏支持 12 个 LLM 供应商切换（NVIDIA/Copilot/MiniMax/DeepSeek/Qwen/GLM/OpenAI/Anthropic/Google/xAI/OpenRouter/Ollama）
 - **一键分析**：输入 6 位 A 股代码 + 日期，点击「开始分析」
 - **实时进度**：12 阶段 pipeline 实时显示（7 分析师 → 质量门控 → 辩论 → 风控 → 决策），所有已完成阶段的报告均可展开查看
 - **完整报告**：信号卡片（Buy/Hold/Sell）、7 份分析师报告、多空辩论、风控评估
@@ -276,9 +301,9 @@ streamlit run web/app.py
 
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
-| `llm_provider` | `"minimax"` | LLM 提供商：`minimax` / `deepseek` / `qwen` / `glm` / `openai` / `anthropic` / `google` / `xai` / `ollama` |
-| `deep_think_llm` | `"MiniMax-M2.7"` | Research Manager + Portfolio Manager 用的模型 |
-| `quick_think_llm` | `"MiniMax-M2.7-highspeed"` | 所有 Analyst / Researcher / Trader 用的模型 |
+| `llm_provider` | `"nvidia"` | LLM 提供商：`nvidia` / `copilot` / `minimax` / `deepseek` / `qwen` / `glm` / `openai` / `anthropic` / `google` / `xai` / `openrouter` / `ollama` |
+| `deep_think_llm` | `"deepseek-ai/deepseek-v4-pro"` | Research Manager + Portfolio Manager 用的模型 |
+| `quick_think_llm` | `"minimaxai/minimax-m2.7"` | 所有 Analyst / Researcher / Trader 用的模型 |
 | `backend_url` | `None` | 自定义 API 端点 / 第三方中转网关。可在 Web UI 侧边栏填写，或用 `.env` 的 `BACKEND_URL`；方便国内通过代理访问 Claude / OpenAI |
 | `output_language` | `"Chinese"` | 报告输出语言（内部辩论始终英文） |
 | `max_debate_rounds` | `1` | Bull vs Bear 辩论轮数 |
@@ -292,7 +317,16 @@ streamlit run web/app.py
 ## 常见问题排错
 
 **Q: 用 DeepSeek/通义/智谱，却报 `OpenAIError: The api_key client option must be set ... OPENAI_API_KEY`？**
-每个供应商用**各自的环境变量**，不是 OPENAI_API_KEY：DeepSeek=`DEEPSEEK_API_KEY`、通义=`DASHSCOPE_API_KEY`、智谱=`ZHIPU_API_KEY`、MiniMax=`MINIMAX_API_KEY`、xAI=`XAI_API_KEY`、OpenRouter=`OPENROUTER_API_KEY`。在项目根目录 `.env` 里设置对应变量后**重启**程序。（v0.2.12 起缺 key 会直接提示该用哪个变量名。）
+每个供应商用**各自的环境变量**，不是 OPENAI_API_KEY：DeepSeek=`DEEPSEEK_API_KEY`、通义=`DASHSCOPE_API_KEY`、智谱=`ZHIPU_API_KEY`、MiniMax=`MINIMAX_API_KEY`、xAI=`XAI_API_KEY`、OpenRouter=`OPENROUTER_API_KEY`、NVIDIA=`NVIDIA_API_KEY`、Copilot=`GITHUB_TOKEN`。在项目根目录 `.env` 里设置对应变量后**重启**程序。（v0.2.12 起缺 key 会直接提示该用哪个变量名。）
+
+**Q: Copilot provider 支持哪些套餐？**
+计划层面支持：`GitHub Copilot Free`、`GitHub Copilot Student`、`GitHub Copilot Pro`、`GitHub Copilot Pro+`、`GitHub Copilot Max`、`GitHub Copilot Business`、`GitHub Copilot Enterprise`。统一通过 `GITHUB_TOKEN` 调用 `https://models.inference.ai.azure.com`，但是否可调用取决于以下条件：
+
+- Token 权限：`GITHUB_TOKEN` 需具备 `models:read`（GitHub Models API 要求）。
+- 组织策略：Business/Enterprise 场景下需由企业/组织开启 GitHub Models，并允许对应模型发布方。
+- 套餐与模型限制：不同计划的可用模型与速率限制不同（官方文档注明 Free/Student 在部分场景仅支持自动模型选择）。
+
+另外，项目在 `copilot` provider 下已内置启动预检：会先请求 `GET /models` 校验 token 与可访问性，失败时直接给出可操作报错（鉴权/组织策略/速率限制）。如需临时跳过预检，可设置环境变量：`COPILOT_PREFLIGHT=0`。
 
 **Q: 导出 PDF 报 `UnicodeEncodeError: 'latin-1' codec can't encode`？**
 你的环境里装了**旧版 `fpdf`（pyfpdf）**，它和本项目用的 `fpdf2` 都以 `fpdf` 名称导入、互相冲突。执行：`pip uninstall -y fpdf && pip install "fpdf2>=2.8.6"`。实在不行可改用「下载 Markdown」导出（零依赖，永远可用）。

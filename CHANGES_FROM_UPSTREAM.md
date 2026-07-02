@@ -4,6 +4,26 @@
 
 ---
 
+## 2026-06-25 — LLM Provider 扩展（NVIDIA / Copilot）
+
+### 修改文件
+
+| 文件 | 改动 |
+|------|------|
+| `cli/utils.py` | CLI provider 列表新增 `NVIDIA NIM` 与 `GitHub Copilot` |
+| `tradingagents/default_config.py` | 默认 provider 改为 `nvidia`，默认 deep/quick 模型改为 NVIDIA 路线 |
+| `tradingagents/llm_clients/factory.py` | OpenAI-compatible provider 列表新增 `nvidia`、`copilot` |
+| `tradingagents/llm_clients/model_catalog.py` | 新增 `nvidia`、`copilot` 的 quick/deep 模型目录 |
+| `tradingagents/llm_clients/openai_client.py` | 新增 provider 端点 + 密钥映射：NVIDIA=`NVIDIA_API_KEY`，Copilot=`GITHUB_TOKEN` |
+| `web/components/sidebar.py` | Web 侧边栏新增 NVIDIA/Copilot 选项，help 文案补充对应环境变量 |
+
+### 结果
+
+- Web UI provider 可选项扩展到 12 个（NVIDIA/Copilot/MiniMax/DeepSeek/Qwen/GLM/OpenAI/Anthropic/Google/xAI/OpenRouter/Ollama）。
+- CLI 与 Web 在 provider 选择和模型目录上保持一致，避免“UI 能选但后端不支持”的配置割裂。
+
+---
+
 ## Week 1 — 数据层 A 股落地
 
 ### 新增文件

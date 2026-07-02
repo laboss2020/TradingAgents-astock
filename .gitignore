@@ -217,3 +217,7 @@ __marimo__/
 
 # Cache
 **/data_cache/
+web/components/sidebar.py.bak
+
+# backup files
+*.bak

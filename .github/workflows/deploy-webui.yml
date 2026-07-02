@@ -1,0 +1,131 @@
+name: Deploy Web UI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - '.github/workflows/deploy-webui.yml'
+      - 'web/**'
+      - 'tradingagents/**'
+      - 'cli/**'
+      - 'pyproject.toml'
+      - 'requirements.txt'
+      - 'README.md'
+      - '.streamlit/**'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-webui-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate deploy config
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${HF_TOKEN}" ]; then
+            echo "Missing required secret: HF_TOKEN"
+            exit 1
+          fi
+          if [ -z "${HF_SPACE_ID}" ]; then
+            echo "Missing required repo variable: HF_SPACE_ID (example: yourname/tradingagents-astock-webui)"
+            exit 1
+          fi
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deploy dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install huggingface_hub
+
+      - name: Create or update Space
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          from huggingface_hub import HfApi
+
+          token = os.environ["HF_TOKEN"]
+          space_id = os.environ["HF_SPACE_ID"]
+
+          api = HfApi(token=token)
+          api.create_repo(
+              repo_id=space_id,
+              repo_type="space",
+              space_sdk="streamlit",
+              exist_ok=True,
+          )
+          print(f"Space ready: https://huggingface.co/spaces/{space_id}")
+          PY
+
+      - name: Sync project to Space repo
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          rm -rf _space_repo
+          git clone "https://user:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE_ID}" _space_repo
+
+          rsync -a --delete \
+            --exclude ".git" \
+            --exclude ".github" \
+            --exclude ".venv" \
+            --exclude "__pycache__" \
+            --exclude "*.pyc" \
+            --exclude "tests" \
+            --exclude "issues" \
+            --exclude "examples" \
+            --exclude "tradingagents_astock.egg-info" \
+            ./ _space_repo/
+
+          cat > _space_repo/README.md <<'EOF'
+          ---
+          title: TradingAgents-Astock Web UI
+          emoji: chart_with_upwards_trend
+          colorFrom: orange
+          colorTo: yellow
+          sdk: streamlit
+          app_file: web/app.py
+          pinned: false
+          ---
+
+          # TradingAgents-Astock Web UI
+
+          Auto-deployed from GitHub Actions.
+          EOF
+
+          cd _space_repo
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to deploy."
+            exit 0
+          fi
+
+          git commit -m "Deploy from GitHub Actions (${GITHUB_SHA})"
+          git push origin main
+
+      - name: Deployment summary
+        shell: bash
+        run: |
+          echo "Web UI URL: https://huggingface.co/spaces/${HF_SPACE_ID}"

@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Breaking changes within the 0.x line are called out explicitly.
 
+## [0.2.16] — 2026-06-25
+
+### Added
+
+- 新增 **NVIDIA NIM** 与 **GitHub Copilot Models** 两个 LLM provider（CLI / Web UI / provider 工厂全链路接入）：
+  - `tradingagents/llm_clients/factory.py` 将 `nvidia`、`copilot` 纳入 OpenAI-compatible provider 路由；
+  - `tradingagents/llm_clients/openai_client.py` 增加默认端点与凭证映射：
+    - NVIDIA → `https://integrate.api.nvidia.com/v1` + `NVIDIA_API_KEY`
+    - Copilot → `https://models.inference.ai.azure.com` + `GITHUB_TOKEN`
+  - `tradingagents/llm_clients/model_catalog.py` 新增两组模型目录（含 quick/deep 与 custom ID）。
+
+### Changed
+
+- 默认 LLM 配置切换为 NVIDIA 路线（`tradingagents/default_config.py`）：
+  - `llm_provider`: `nvidia`
+  - `deep_think_llm`: `deepseek-ai/deepseek-v4-pro`
+  - `quick_think_llm`: `minimaxai/minimax-m2.7`
+  - `openai_reasoning_effort`: 默认 `medium`
+- Web 侧边栏 provider 列表补齐 NVIDIA/Copilot，并同步 API Key 提示文案（`NVIDIA_API_KEY` / `GITHUB_TOKEN`）。
+
 ## [0.2.15] — 2026-06-20
 
 本版合并 4 个社区 PR + 一批针对性修复，主线集中在「数据可靠性 + 模型可用性 + 全新安装体验」。

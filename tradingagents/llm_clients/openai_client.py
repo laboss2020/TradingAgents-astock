@@ -1,6 +1,8 @@
 import os
 from typing import Any, Optional
 
+import requests
+
 from langchain_core.messages import AIMessage
 from langchain_openai import ChatOpenAI
 
@@ -123,6 +125,74 @@ _PROVIDER_CONFIG = {
 }
 
 
+def _preflight_copilot_access(base_url: str, api_key: str, model: str) -> None:
+    """Best-effort Copilot preflight check with actionable diagnostics.
+
+    The GitHub Models OpenAI-compatible gateway should expose ``/models``.
+    We query it once before first use to fail fast with clear guidance when
+    token scope, org policy, or plan limits block access.
+
+    Set ``COPILOT_PREFLIGHT=0`` to skip this check.
+    """
+    if os.getenv("COPILOT_PREFLIGHT", "1").strip() in {"0", "false", "False"}:
+        return
+
+    url = f"{base_url.rstrip('/')}/models"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Accept": "application/json",
+    }
+
+    try:
+        resp = requests.get(url, headers=headers, timeout=8)
+    except requests.RequestException as exc:
+        raise RuntimeError(
+            "Copilot 预检失败：无法连接 GitHub Models 网关。"
+            "请检查网络/代理设置，或设 COPILOT_PREFLIGHT=0 临时跳过预检。"
+            f" 原始错误：{exc}"
+        ) from exc
+
+    if resp.status_code == 200:
+        # Optional model existence hint (do not hard fail if response shape changes).
+        try:
+            payload = resp.json()
+            models = payload.get("data") if isinstance(payload, dict) else None
+            if isinstance(models, list):
+                ids = {
+                    item.get("id")
+                    for item in models
+                    if isinstance(item, dict) and item.get("id")
+                }
+                if ids and model not in ids:
+                    raise RuntimeError(
+                        "Copilot 预检通过，但当前模型不在该账号可用列表中："
+                        f"{model}。请切换为 Copilot 计划支持的模型，"
+                        "或确认组织是否允许该模型发布方。"
+                    )
+        except ValueError:
+            # Non-JSON response: ignore and proceed.
+            pass
+        return
+
+    if resp.status_code in {401, 403}:
+        raise RuntimeError(
+            "Copilot 预检失败：鉴权或权限不足。"
+            "请确认 GITHUB_TOKEN 有效且具备 models:read；"
+            "若为 Business/Enterprise，请确认组织已启用 GitHub Models 并允许对应模型发布方。"
+        )
+
+    if resp.status_code == 429:
+        raise RuntimeError(
+            "Copilot 预检失败：已触发速率/额度限制（429）。"
+            "请稍后重试，或升级/调整 Copilot 计划与配额策略。"
+        )
+
+    raise RuntimeError(
+        "Copilot 预检失败：GitHub Models 网关返回异常状态码 "
+        f"{resp.status_code}。响应摘要：{resp.text[:300]}"
+    )
+
+
 class OpenAIClient(BaseLLMClient):
     """Client for OpenAI, Ollama, OpenRouter, and xAI providers.
 
@@ -180,6 +250,13 @@ class OpenAIClient(BaseLLMClient):
         # all model families. Third-party providers use Chat Completions.
         if self.provider == "openai":
             llm_kwargs["use_responses_api"] = True
+
+        if self.provider == "copilot":
+            _preflight_copilot_access(
+                base_url=llm_kwargs["base_url"],
+                api_key=llm_kwargs["api_key"],
+                model=self.model,
+            )
 
         # DeepSeek's thinking-mode quirks live in their own subclass so the
         # base NormalizedChatOpenAI stays free of provider-specific branches.

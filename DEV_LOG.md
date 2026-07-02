@@ -9,6 +9,25 @@
 
 ---
 
+## 2026-06-25 — NVIDIA / Copilot Provider 接入补记
+
+**背景：** 上次 push（`90c7a25`）完成了新 provider 接入，但说明未同步到对外文档。
+
+**本次补记对应的代码事实：**
+- provider 工厂接入：`tradingagents/llm_clients/factory.py` 增加 `nvidia`、`copilot`。
+- 端点与密钥映射：`tradingagents/llm_clients/openai_client.py`
+  - NVIDIA → `https://integrate.api.nvidia.com/v1` + `NVIDIA_API_KEY`
+  - Copilot → `https://models.inference.ai.azure.com` + `GITHUB_TOKEN`
+- 模型目录扩展：`tradingagents/llm_clients/model_catalog.py` 新增 `nvidia`/`copilot` quick/deep 选项。
+- UI/CLI 入口补齐：`web/components/sidebar.py` 与 `cli/utils.py` provider 列表新增 NVIDIA/Copilot。
+- 默认配置切换：`tradingagents/default_config.py` 默认 provider 调整为 `nvidia`，默认 deep/quick 模型同步更新。
+
+**影响：**
+- Web UI provider 可选项扩展为 12 个；
+- 文档层已与代码行为对齐（README/CHANGELOG/CHANGES_FROM_UPSTREAM/DEV_LOG）。
+
+---
+
 ## 项目定位
 
 **这不是又一个中文翻译版 fork。**

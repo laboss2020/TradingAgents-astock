@@ -19,7 +19,7 @@ from web.history import (
 # Provider display names in recommended order
 _PROVIDERS: list[tuple[str, str]] = [
     ("NVIDIA NIM（免费·推荐）", "nvidia"),
-    ("GitHub Copilot（免费额度）", "copilot"),
+    ("GitHub Copilot（全计划）", "copilot"),
     ("MiniMax（国内直连）", "minimax"),
     ("DeepSeek", "deepseek"),
     ("通义千问 Qwen", "qwen"),
@@ -188,7 +188,7 @@ def _render_llm_config() -> None:
             "OpenAI=OPENAI_API_KEY、DeepSeek=DEEPSEEK_API_KEY、"
             "通义=DASHSCOPE_API_KEY、智谱=ZHIPU_API_KEY、MiniMax=MINIMAX_API_KEY、"
             "Claude=ANTHROPIC_API_KEY、OpenRouter=OPENROUTER_API_KEY、xAI=XAI_API_KEY、"
-            "NVIDIA=NVIDIA_API_KEY、GitHub=GITHUB_TOKEN。"
+            "NVIDIA=NVIDIA_API_KEY、GitHub Copilot=GITHUB_TOKEN（Free/Student/Pro/Pro+/Max/Business/Enterprise）。"
             "也可在 .env 里设 BACKEND_URL 代替此处。"
         ),
     )
